@@ -3,71 +3,76 @@ import 'package:weather_app/services/auth_service.dart';
 import 'package:weather_app/screens/login_screen.dart';
 import 'package:weather_app/screens/weather_screen.dart';
 import 'package:weather_app/widgets/button.dart';
+import '../widgets/chatPage.dart';
+import 'channelPage.dart';
+import 'profilePage.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final AuthService auth = AuthService();
+  _HomeScreenState createState() => _HomeScreenState();
+}
 
+class _HomeScreenState extends State<HomeScreen> {
+  final AuthService auth = AuthService();
+  int currentIndex = 0;
+
+  final List<Widget> pages = [
+    WeatherScreen(),
+    ChatPage(),
+    ChannelPage(),
+    ProfilePage(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      body: Align(
-        alignment: Alignment.center,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                const Text(
-                  "Welcome User",
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 30),
-                Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 8,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      children: [
-                        Button(
-                          label: "Open Weather App",
-                          style: const TextStyle(fontSize: 16),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const WeatherScreen()),
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 20),
-                        Button(
-                          label: "Sign Out",
-                          style: const TextStyle(fontSize: 16),
-                          onPressed: () async {
-                            await auth.signout();
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (context) => const LoginScreen()),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300), // Animation for switching pages
+        child: pages[currentIndex],
       ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: currentIndex,
+        onTap: (index) {
+          setState(() {
+            currentIndex = index;
+          });
+        },
+        selectedItemColor: Colors.black,
+        unselectedItemColor: Colors.grey,
+        items: [
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.cloud),
+            label: "Weather",
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.message),
+            label: "Chats",
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.group_work),
+            label: "Channels",
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.account_box),
+            label: "Profile",
+          ),
+        ],
+      ),
+      floatingActionButton: (currentIndex == 3)
+          ? FloatingActionButton(
+        onPressed: () async {
+          await auth.signout();
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+          );
+        },
+        child: const Icon(Icons.logout),
+        backgroundColor: Colors.red,
+      )
+          : null,
     );
   }
 }
